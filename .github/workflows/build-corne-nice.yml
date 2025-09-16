@@ -51,7 +51,6 @@ jobs:
           west build -p always -s app -d ../build/corne_nice -b nice_nano_v2 -- \
             -DZMK_CONFIG="$GITHUB_WORKSPACE/config" \
             -DSHIELD=corne_nice \
-            -DZMK_EXTRA_MODULES="$GITHUB_WORKSPACE" \
             -DOVERLAY_CONFIG="$GITHUB_WORKSPACE/config/uf2.conf"
 
       - name: List outputs
