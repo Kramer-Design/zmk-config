@@ -53,8 +53,8 @@
    &kp TAB        &kp EXCL     &kp AT       &kp HASH     &kp DLLR     &kp PRCNT       &kp CARET       &kp SEMI     &kp PLUS       &kp UP         &mt MINUS DOT 
    &kp LSHFT      &kp TILDE    &kp GRAVE    &kp AMPS     &kp LPAR     &kp RPAR        &kp LBKT        &kp RBKT     &kp LEFT       &kp DOWN       &kp RIGHT 
    &mo 1          &none        &mo 2        &kp LALT     &none        &kp SPACE       &mt RGUI SPACE  &none        &mt RCTRL RET  &mt DEL BSPC                               
-                        >;
-                };
+      >;
+  };
 
                 raise_layer {
                         bindings = <
