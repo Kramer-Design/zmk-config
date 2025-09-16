@@ -1,0 +1,78 @@
+name: Build corne_nice (custom shield)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container:
+      image: docker.io/zmkfirmware/zmk-build-arm:3.5-branch
+      options: --pull always
+
+    steps:
+      - name: Checkout config repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Show repo state
+        run: |
+          set -eux
+          echo "Branch: $GITHUB_REF  SHA: $GITHUB_SHA"
+          find config -maxdepth 3 -type f | sort
+
+      - name: Fetch ZMK source
+        run: |
+          set -eux
+          rm -rf .west zmk-src
+          git clone --depth=1 https://github.com/zmkfirmware/zmk.git zmk-src
+
+      - name: West init & update
+        run: |
+          set -eux
+          west init -l zmk-src/app
+          cd zmk-src
+          west update
+
+      - name: Enable UF2 output (local-only Kconfig overlay)
+        run: |
+          set -eux
+          mkdir -p config
+          cat > config/uf2.conf <<'EOF'
+          CONFIG_BUILD_OUTPUT_UF2=y
+          CONFIG_BUILD_OUTPUT_HEX=y
+          EOF
+
+      - name: Build firmware (corne_nice shield)
+        run: |
+          set -eux
+          cd zmk-src
+          west build -p always -s app -d ../build/corne_nice -b nice_nano_v2 -- \
+            -DZMK_CONFIG="$GITHUB_WORKSPACE/config" \
+            -DSHIELD=corne_nice \
+            -DZMK_EXTRA_MODULES="$GITHUB_WORKSPACE" \
+            -DOVERLAY_CONFIG="$GITHUB_WORKSPACE/config/uf2.conf"
+
+      - name: List outputs
+        run: |
+          set -eux
+          ls -lah build/corne_nice/zephyr || true
+          echo "UF2 flag:"
+          grep -E 'CONFIG_BUILD_OUTPUT_UF2=' build/corne_nice/zephyr/.config || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: corne_nice-${{ github.sha }}
+          path: |
+            build/corne_nice/zephyr/*.uf2
+            build/corne_nice/zephyr/*.hex
+            build/corne_nice/zephyr/*.bin
+            build/corne_nice/zephyr/zephyr.elf
+            build/corne_nice/zephyr/zephyr.map
+            build/corne_nice/zephyr/zephyr.dts
+            build/corne_nice/zephyr/.config
+            build/corne_nice/zephyr/zephyr.log
+          if-no-files-found: warn
+          retention-days: 7
